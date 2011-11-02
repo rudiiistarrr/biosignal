@@ -2,21 +2,21 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package baa_server;
+package tcpip_client;
 
-import baa_server.gui.MainFrame;
+import tcpip_client.network.Client;
 
 /**
  *
  * @author Rudi
  */
-public class Baa_server {
+public class Tcpip_client {
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MainFrame frame = new MainFrame();
-        frame.setVisible(true);
+        Client client = new Client(5050);
+        client.connectToServer();
     }
 }
