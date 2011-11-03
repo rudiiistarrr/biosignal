@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package tcpip_server.console;
+package dependency;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -13,7 +13,7 @@ import java.util.Date;
  *
  * @author Rudi
  */
-public class Output {
+public class Console {
     
     private static DateFormat sdf = new SimpleDateFormat("dd/MM/yyyy kk:mm:ss");
     

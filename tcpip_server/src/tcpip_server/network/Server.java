@@ -4,16 +4,17 @@
  */
 package tcpip_server.network;
 
-import java.io.DataInputStream;
+import dependency.Channel;
+import dependency.Data;
+import dependency.Console;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import tcpip_server.console.Output;
 
 /**
  *
@@ -35,14 +36,25 @@ public class Server {
     public void startServer() {
         try {
             serverSocket = new ServerSocket(port);
-            Output.setMessage("Server started");
-            while (true) {
-                Socket s;
-
-                while (true) {
-                    Future<?> submit = pool.submit(new ClientHandling(s = serverSocket.accept()));
-                }
+            Console.setMessage("Server started");
+            Console.setMessage("Waiting for Clients");
+            client = serverSocket.accept();
+            Console.setMessage("Client " + client.getInetAddress().toString() + " connected");
+            
+            InputStream input = client.getInputStream();
+            int number = Data.receiveNumberOfChannels(input);
+            
+            Channel[] channels = new Channel[number];
+            
+            Thread [] t = new Thread[number];
+            
+            for(int i = 0;i < number; i++){
+                channels[i] = new Channel();
+                t[i] = new Thread(new Receive(channels[i], input));
+                t[i].start();
             }
+            
+            while(true){}
 
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
