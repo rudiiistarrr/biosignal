@@ -17,6 +17,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,9 +29,11 @@ public class Client {
 
     private Socket socket;
     private int port;
+    private Timer timer;
 
     public Client(int arg0) {
         this.port = arg0;
+        timer = new Timer();
     }
 
     public void connectToServer() {
@@ -44,7 +47,7 @@ public class Client {
             
             OutputStream output = socket.getOutputStream();
             Data.sendNumberOfChannels(output, number);
-            
+
             List<Channel> channels = new ArrayList<Channel>();
             for(int i = 0; i < number; i++){
                 Console.setMessage("[Channel " + i + ":] Abtastrate: ");
@@ -54,12 +57,11 @@ public class Client {
             }
             
             Collections.sort(channels, new ChannelComparator());
-            Thread[] t  = new Thread[number];
-            int i = 0;
+
             
             for(Channel channel: channels){
-                t[i] = new Thread(new Transfer(channel,output));
-                t[i].start();
+                timer.scheduleAtFixedRate(new Transfer(channel,output), 1000, (long)(((double)1/channel.getSamplingRate())*1000));
+                System.out.println("");
             }
 
         } catch (UnknownHostException ex) {

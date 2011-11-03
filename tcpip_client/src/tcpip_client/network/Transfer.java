@@ -7,6 +7,8 @@ package tcpip_client.network;
 import dependency.Channel;
 import dependency.Console;
 import java.io.OutputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,28 +16,26 @@ import java.util.logging.Logger;
  *
  * @author Rudi
  */
-public class Transfer implements Runnable {
+public class Transfer extends TimerTask {
 
     private Channel channel;
     private OutputStream output;
+    private Timer timer;
 
     public Transfer(Channel channel, OutputStream output) {
         this.channel = channel;
         this.output = output;
+        timer = new Timer();
     }
 
     @Override
     public void run() {
         while (true) {
-            try {
-                Thread.sleep(1 / channel.getSamplingRate());
-                synchronized (output) {
-                    channel.writeObject(output);
-                }
-                Console.setMessage("[Channel " + channel.getNumber() + "]: Data sended (" + channel.getSamplingRate() + "MHz)\n" + channel.getData());
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Transfer.class.getName()).log(Level.SEVERE, null, ex);
+            synchronized (output) {
+                channel.writeObject(output);
             }
+            Console.setMessage("[Channel " + channel.getNumber() + "]: Data sent (" + channel.getSamplingRate() + "Hz)\n" + channel.getData());
+            break;
         }
     }
 }

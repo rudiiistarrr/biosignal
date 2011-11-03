@@ -31,6 +31,7 @@ public class Data {
         try {
             buffer = ByteBuffer.allocate(4).putInt(number).array();
             output.write(buffer);
+            output.flush();
         } catch (IOException ex) {
             Logger.getLogger(Channel.class.getName()).log(Level.SEVERE, null, ex);
         }

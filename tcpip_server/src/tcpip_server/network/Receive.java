@@ -26,9 +26,14 @@ public class Receive implements Runnable {
     public void run() {
         while (true) {
             synchronized (input) {
-                channel.readObject(input);
+                if (channel.readObject(input) == -1) {
+                    Console.setMessage("Failed");
+                    break;
+                }
+
             }
-            Console.setMessage("[Channel " + channel.getNumber() + "]: Data sended (" + channel.getSamplingRate() + "MHz)\n" + channel.getData());
+            Console.setMessage("[Channel " + channel.getNumber() + "]: Data sent (" + channel.getSamplingRate() + "Hz)\n" + channel.getData());
+            break;
         }
     }
 }

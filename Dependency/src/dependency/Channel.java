@@ -7,10 +7,9 @@ package dependency;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.Calendar;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,7 +62,7 @@ public class Channel {
 
     }
 
-    public void readObject(InputStream input) {
+    public int readObject(InputStream input) {
         try {
             buffer = new byte[4];
             int read = input.read(buffer, 0, 4);
@@ -77,8 +76,14 @@ public class Channel {
             
             read = input.read(buffer,0, 4);
             samplingRate = ByteBuffer.wrap(buffer).getInt();
-        } catch (IOException ex) {
+            
+            return 1;
+        }    catch(SocketException ex){
+                return -1;
+            }
+         catch (IOException ex) {
             Logger.getLogger(Channel.class.getName()).log(Level.SEVERE, null, ex);
+            return -1;
         }
     }
 
