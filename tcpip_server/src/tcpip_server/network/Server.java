@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,44 +24,45 @@ public class Server {
 
     private ServerSocket serverSocket;
     private Socket client;
-    private int port;
-    private final ExecutorService pool;
     int timeout = 1000;
 
-    public Server(int port, int poolSize) {
-        this.port = port;
-        pool = Executors.newFixedThreadPool(poolSize);
+    public Server(ServerSocket serverSocket) {
+        this.serverSocket = serverSocket;
     }
 
     public void startServer() {
         try {
-            serverSocket = new ServerSocket(port);
-            Console.setMessage("Server started");
-            Console.setMessage("Waiting for Clients");
             client = serverSocket.accept();
             Console.setMessage("Client " + client.getInetAddress().toString() + " connected");
-            
+
             InputStream input = client.getInputStream();
             int number = Data.receiveNumberOfChannels(input);
-            
+
             Channel[] channels = new Channel[number];
-            
-            Thread [] t = new Thread[number];
-            
-            for(int i = 0;i < number; i++){
+
+            Thread[] t = new Thread[number];
+
+            for (int i = 0; i < number; i++) {
                 channels[i] = new Channel();
                 t[i] = new Thread(new Receive(channels[i], input));
                 t[i].start();
+                
             }
             
-            while(true){}
+            boolean state = true;
+            while(state){
+                for(int i=0; i < number; i++){
+                    state = t[i].isAlive();
+                }
+            }
+
+            System.out.println("LEIWAND");
 
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 client.close();
-                serverSocket.close();
             } catch (IOException ex) {
                 Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
             }

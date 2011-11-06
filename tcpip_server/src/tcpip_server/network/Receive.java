@@ -7,6 +7,7 @@ package tcpip_server.network;
 import dependency.Channel;
 import dependency.Console;
 import java.io.InputStream;
+import java.net.SocketException;
 
 /**
  *
@@ -24,16 +25,17 @@ public class Receive implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        boolean run = true;
+        while (run) {
             synchronized (input) {
-                if (channel.readObject(input) == -1) {
-                    Console.setMessage("Failed");
-                    break;
+                try {
+                    channel.readObject(input);
+                    Console.setMessage("[Channel " + channel.getNumber() + "]: Data sent (" + channel.getSamplingRate() + "Hz)\n" + channel.getData());
                 }
-
+                catch(SocketException ex){
+                    run = false;
+                }
             }
-            Console.setMessage("[Channel " + channel.getNumber() + "]: Data sent (" + channel.getSamplingRate() + "Hz)\n" + channel.getData());
-            break;
         }
     }
 }
