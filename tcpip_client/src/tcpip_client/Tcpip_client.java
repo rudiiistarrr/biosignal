@@ -23,19 +23,42 @@ public class Tcpip_client {
     /**
      * @param args the command line arguments
      */
+    private static Socket socket;
+    private static boolean connected = false;
     private static String ip = "localhost";
     private static int port = 5050;
+    private static final int timeout = 5000;
 
     public static void main(String[] args) {
-        try {
-            Socket socket = new Socket(ip, port);
-            Client client = new Client(socket);
-            client.connectToServer();
-            System.out.println("");
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex);
+
+        socket = null;
+        
+        while (true) {
+            while (!connected) {
+                try {
+                    socket = new Socket(ip, port);
+                    connected = true;
+                } catch (SocketException ex) {
+                    System.out.println("Server is not available... Try to reconnect in " + timeout / 1000 + " seconds");
+                    try {
+                        Thread.sleep(timeout);
+                    } catch (InterruptedException ex1) {
+                        Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex1);
+                    }
+                } catch (UnknownHostException ex) {
+                    Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+
+            if (connected) {
+                Client client = new Client(socket);
+                client.connectToServer();
+                connected = false;
+            }
+
         }
 
     }

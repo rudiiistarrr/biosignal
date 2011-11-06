@@ -24,64 +24,63 @@ public class Channel {
     private int samplingRate;
     private short data;
     private byte[] buffer;
-    
-    public Channel(){
-        
+
+    public Channel() {
     }
 
     public Channel(int number, int samplingRate) {
         this.number = number;
         this.samplingRate = samplingRate;
     }
-    
 
-    public void writeObject(OutputStream output) {
+    public void writeObject(OutputStream output) throws SocketException {
         try {
             buffer = ByteBuffer.allocate(4).putInt(number).array();
             output.write(buffer, 0, 4);
             output.flush();
-            
+
             Calendar cal = Calendar.getInstance();
             time = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE) + cal.get(Calendar.SECOND);
             buffer = ByteBuffer.allocate(4).putInt(time).array();
-            output.write(buffer,0,4);
+            output.write(buffer, 0, 4);
             output.flush();
-            
+
             buffer = Data.create();
             data = ByteBuffer.wrap(buffer).getShort();
-            output.write(buffer,0,2);
+            output.write(buffer, 0, 2);
             output.flush();
-            
+
             buffer = ByteBuffer.allocate(4).putInt(samplingRate).array();
             output.write(buffer, 0, 4);
             output.flush();
-            
+
+        } catch (SocketException ex) {
+            throw new SocketException();
         } catch (IOException ex) {
             Logger.getLogger(Channel.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
-    public int readObject(InputStream input) {
+    public int readObject(InputStream input) throws SocketException {
         try {
             buffer = new byte[4];
             int read = input.read(buffer, 0, 4);
             number = ByteBuffer.wrap(buffer).getInt();
-            
+
             read = input.read(buffer, 0, 4);
             time = ByteBuffer.wrap(buffer).getInt();
-            
+
             read = input.read(buffer, 0, 2);
             data = ByteBuffer.wrap(buffer).getShort();
-            
-            read = input.read(buffer,0, 4);
+
+            read = input.read(buffer, 0, 4);
             samplingRate = ByteBuffer.wrap(buffer).getInt();
-            
+
             return 1;
-        }    catch(SocketException ex){
-                return -1;
-            }
-         catch (IOException ex) {
+        } catch (SocketException ex) {
+            throw new SocketException();
+        } catch (IOException ex) {
             Logger.getLogger(Channel.class.getName()).log(Level.SEVERE, null, ex);
             return -1;
         }
@@ -98,9 +97,4 @@ public class Channel {
     public short getData() {
         return data;
     }
-    
-    
-    
-    
-    
 }

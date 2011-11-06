@@ -8,10 +8,7 @@ import dependency.Channel;
 import dependency.Console;
 import java.io.OutputStream;
 import java.net.SocketException;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -21,20 +18,23 @@ public class Transfer implements Runnable {
 
     private Channel channel;
     private OutputStream output;
+    private ScheduledThreadPoolExecutor service;
 
-    public Transfer(Channel channel, OutputStream output) {
+    public Transfer(Channel channel, OutputStream output, ScheduledThreadPoolExecutor service) {
         this.channel = channel;
         this.output = output;
+        this.service = service;
     }
 
     @Override
     public void run() {
+
         synchronized (output) {
             try {
                 channel.writeObject(output);
                 Console.setMessage("[Channel " + channel.getNumber() + "]: Data sent (" + channel.getSamplingRate() + "Hz)\n" + channel.getData());
             } catch (SocketException ex) {
-                return;
+                service.shutdownNow();
             }
         }
 

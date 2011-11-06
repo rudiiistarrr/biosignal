@@ -4,6 +4,7 @@
  */
 package tcpip_client.network;
 
+import com.sun.jmx.snmp.tasks.Task;
 import dependency.Channel;
 import dependency.ChannelComparator;
 import dependency.Data;
@@ -23,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -100,17 +100,19 @@ public class Client {
             for (Channel channel : channels) {
 
                 long delay = (long) (((double) 1 / channel.getSamplingRate()) * 1000);
-                r[i] = service.scheduleWithFixedDelay(new Transfer(channel, output), 1000, (long) (((double) 1 / channel.getSamplingRate()) * 1000), TimeUnit.MILLISECONDS);
+
+                r[i] = service.scheduleWithFixedDelay(new Transfer(channel, output, service), 1000, (long) (((double) 1 / channel.getSamplingRate()) * 1000), TimeUnit.MILLISECONDS);
                 //service.schedule(new Transfer(channel, output), delay, TimeUnit.MILLISECONDS);
                 //timer.scheduleAtFixedRate(new Transfer(channel, output), 1000, (long) (((double) 1 / channel.getSamplingRate()) * 1000));
                 i++;
-            }
-            List<Runnable> shutdownNow = service.shutdownNow();
-            System.out.println(shutdownNow.size());
-            return;
 
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            while(!service.isTerminated()){
+                
+            }
+            System.out.println("Connection lost");
+            
         } catch (SocketException ex) {
             System.out.println("Test1");
         } catch (IOException ex) {
