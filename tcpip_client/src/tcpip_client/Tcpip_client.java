@@ -25,40 +25,50 @@ public class Tcpip_client {
      */
     private static Socket socket;
     private static boolean connected = false;
-    private static String ip = "localhost";
-    private static int port = 5050;
+    private static boolean input = false;
+    private static String ip;
+    private static int port;
     private static final int timeout = 5000;
 
     public static void main(String[] args) {
-
-        socket = null;
         
         while (true) {
-            while (!connected) {
-                try {
-                    socket = new Socket(ip, port);
-                    connected = true;
-                } catch (SocketException ex) {
-                    System.out.println("Server is not available... Try to reconnect in " + timeout / 1000 + " seconds");
+            socket = null;
+            Console.setInputMessage("Bitte geben Sie eine IP ein: ");
+            ip = Console.getInput();
+            Console.setInputMessage("Bitte geben Sie einen Port ein: ");
+            port = Integer.valueOf(Console.getInput());
+            input = true;
+
+            while (input) {
+                while (!connected) {
                     try {
-                        Thread.sleep(timeout);
-                    } catch (InterruptedException ex1) {
-                        Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex1);
+                        socket = new Socket(ip, port);
+                        connected = true;
+                    } catch (SocketException ex) {
+                        System.out.println("Server is not available... Try to reconnect in " + timeout / 1000 + " seconds");
+                        try {
+                            Thread.sleep(timeout);
+                        } catch (InterruptedException ex1) {
+                            Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex1);
+                        }
+                    } catch (UnknownHostException ex) {
+                        Console.setMessage("Host wurde nicht gefunden");
+                        input = false;
+                        break;
+                    } catch (IOException ex) {
+                        Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                } catch (UnknownHostException ex) {
-                    Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(Tcpip_client.class.getName()).log(Level.SEVERE, null, ex);
                 }
+
+
+                if (connected) {
+                    Client client = new Client(socket);
+                    client.connectToServer();
+                    connected = false;
+                }
+
             }
-
-
-            if (connected) {
-                Client client = new Client(socket);
-                client.connectToServer();
-                connected = false;
-            }
-
         }
 
     }

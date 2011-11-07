@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +22,7 @@ public class Server {
 
     private ServerSocket serverSocket;
     private Socket client;
-    int timeout = 1000;
+    private final boolean OUTPUT = true;
 
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
@@ -38,25 +36,28 @@ public class Server {
             InputStream input = client.getInputStream();
             int number = Data.receiveNumberOfChannels(input);
 
-            Channel[] channels = new Channel[number];
+            if (number > 0) {
 
-            Thread[] t = new Thread[number];
+                Channel[] channels = new Channel[number];
 
-            for (int i = 0; i < number; i++) {
-                channels[i] = new Channel();
-                t[i] = new Thread(new Receive(channels[i], input));
-                t[i].start();
-                
-            }
-            
-            boolean state = true;
-            while(state){
-                for(int i=0; i < number; i++){
-                    state = t[i].isAlive();
+                Thread[] t = new Thread[number];
+
+                for (int i = 0; i < number; i++) {
+                    channels[i] = new Channel();
+                    t[i] = new Thread(new Receive(channels[i], input, OUTPUT));
+                    t[i].start();
+
+                }
+
+                boolean state = true;
+                while (state) {
+                    for (int i = 0; i < number; i++) {
+                        state = t[i].isAlive();
+                    }
                 }
             }
-
-            System.out.println("LEIWAND");
+           
+            Console.setMessage("Client " + client.getInetAddress().toString() + " disconnected");
 
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);

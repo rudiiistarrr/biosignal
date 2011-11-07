@@ -4,7 +4,6 @@
  */
 package tcpip_client.network;
 
-import com.sun.jmx.snmp.tasks.Task;
 import dependency.Channel;
 import dependency.ChannelComparator;
 import dependency.Data;
@@ -15,16 +14,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -40,6 +36,7 @@ public class Client {
     private int number;
     private Timer timer;
     private List<Channel> channels;
+    private String filePath = "config.txt";
 
     public Client(Socket socket) {
         this.socket = socket;
@@ -57,29 +54,24 @@ public class Client {
             Console.setMessage("Connection established");
 
             /* Check if config file exsists */
-            if (new File("config.txt").exists() == true) {
-                Console.setMessage("Abgebrochene Connection wieder aufnehmen? ");
-                reader = new BufferedReader(new InputStreamReader(System.in));
-                if (reader.readLine().equals("y")) {
+            if (new File(filePath).exists() == true) {
+                Console.setInputMessage("Abgebrochene Connection wieder aufnehmen? ");
+                if (Console.getInput().equals("y")) {
                     reconnect = true;
                 }
             }
 
             /* Starting a new connection */
             if (!reconnect) {
-                Console.setMessage("Set Channels: ");
-                loadConfig();
-                reader = new BufferedReader(new InputStreamReader(System.in));
-                String userInput = reader.readLine();
-                number = Integer.parseInt(userInput);
+                Console.setInputMessage("Set Channels: ");
+                number = Integer.valueOf(Console.getInput());
 
                 /* Send: Number of Channels */
                 Data.sendNumberOfChannels(output, number);
 
                 for (int i = 0; i < number; i++) {
-                    Console.setMessage("[Channel " + i + ":] Abtastrate: ");
-                    String readLine = reader.readLine();
-                    int samplingRate = Integer.parseInt(readLine);
+                    Console.setInputMessage("[Channel " + i + ":] Abtastrate: ");
+                    int samplingRate = Integer.valueOf(Console.getInput());
                     channels.add(new Channel(i, samplingRate));
                 }
             } else {
@@ -95,26 +87,17 @@ public class Client {
 
             /* Sort Channels (lowest sampling rate first) */
             Collections.sort(channels, new ChannelComparator());
-            ScheduledFuture<?>[] r = new ScheduledFuture<?>[3];
-            int i = 0;
+
             for (Channel channel : channels) {
-
-                long delay = (long) (((double) 1 / channel.getSamplingRate()) * 1000);
-
-                r[i] = service.scheduleWithFixedDelay(new Transfer(channel, output, service), 1000, (long) (((double) 1 / channel.getSamplingRate()) * 1000), TimeUnit.MILLISECONDS);
-                //service.schedule(new Transfer(channel, output), delay, TimeUnit.MILLISECONDS);
-                //timer.scheduleAtFixedRate(new Transfer(channel, output), 1000, (long) (((double) 1 / channel.getSamplingRate()) * 1000));
-                i++;
-
+                service.scheduleWithFixedDelay(new Transfer(channel, output, service), 1000, (long) (((double) 1 / channel.getSamplingRate()) * 1000), TimeUnit.MILLISECONDS);
             }
-            
-            while(!service.isTerminated()){
-                
+
+            while (!service.isTerminated()) {
             }
             System.out.println("Connection lost");
-            
+
         } catch (SocketException ex) {
-            System.out.println("Test1");
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -122,7 +105,7 @@ public class Client {
 
     private void saveConfig() {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("config.txt"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
             writer.write(String.valueOf(number) + "\r\n");
             writer.flush();
             for (Channel channel : channels) {
@@ -140,7 +123,7 @@ public class Client {
 
     private void loadConfig() {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("config.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader(filePath));
             number = Integer.parseInt(reader.readLine());
             for (int i = 0; i < number; i++) {
                 int channelNumber = Integer.parseInt(reader.readLine());
