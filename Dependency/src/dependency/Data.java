@@ -19,8 +19,8 @@ import java.util.logging.Logger;
 public class Data {
 
     private static byte[] buffer;
-
-    public static byte[] create() {
+    
+    public static byte[] createRandomData() {
         Random r = new Random();
         buffer = new byte[2];
         r.nextBytes(buffer);

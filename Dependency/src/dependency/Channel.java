@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,12 +41,13 @@ public class Channel {
             output.flush();
 
             Calendar cal = Calendar.getInstance();
-            time = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE) + cal.get(Calendar.SECOND);
+            time = cal.get(Calendar.HOUR_OF_DAY) * 10000 + cal.get(Calendar.MINUTE) *100 + cal.get(Calendar.SECOND);
             buffer = ByteBuffer.allocate(4).putInt(time).array();
+            
             output.write(buffer, 0, 4);
             output.flush();
 
-            buffer = Data.create();
+            buffer = Data.createRandomData();
             data = ByteBuffer.wrap(buffer).getShort();
             output.write(buffer, 0, 2);
             output.flush();
@@ -97,4 +99,10 @@ public class Channel {
     public short getData() {
         return data;
     }
+
+    public int getTime() {
+        return time;
+    }
+    
+    
 }
