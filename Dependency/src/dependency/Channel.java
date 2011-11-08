@@ -41,9 +41,9 @@ public class Channel {
             output.flush();
 
             Calendar cal = Calendar.getInstance();
-            time = cal.get(Calendar.HOUR_OF_DAY) * 10000 + cal.get(Calendar.MINUTE) *100 + cal.get(Calendar.SECOND);
+            time = cal.get(Calendar.HOUR_OF_DAY) * 10000 + cal.get(Calendar.MINUTE) * 100 + cal.get(Calendar.SECOND);
             buffer = ByteBuffer.allocate(4).putInt(time).array();
-            
+
             output.write(buffer, 0, 4);
             output.flush();
 
@@ -59,33 +59,27 @@ public class Channel {
         } catch (SocketException ex) {
             throw new SocketException();
         } catch (IOException ex) {
-            Logger.getLogger(Channel.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(Channel.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
-    public int readObject(InputStream input) throws SocketException {
-        try {
-            buffer = new byte[4];
-            int read = input.read(buffer, 0, 4);
-            number = ByteBuffer.wrap(buffer).getInt();
+    public void readObject(InputStream input) throws IOException {
 
-            read = input.read(buffer, 0, 4);
-            time = ByteBuffer.wrap(buffer).getInt();
+        buffer = new byte[4];
+        int read = input.read(buffer, 0, 4);
+        number = ByteBuffer.wrap(buffer).getInt();
 
-            read = input.read(buffer, 0, 2);
-            data = ByteBuffer.wrap(buffer).getShort();
+        read = input.read(buffer, 0, 4);
+        time = ByteBuffer.wrap(buffer).getInt();
 
-            read = input.read(buffer, 0, 4);
-            samplingRate = ByteBuffer.wrap(buffer).getInt();
+        read = input.read(buffer, 0, 2);
+        data = ByteBuffer.wrap(buffer).getShort();
 
-            return 1;
-        } catch (SocketException ex) {
-            throw new SocketException();
-        } catch (IOException ex) {
-            Logger.getLogger(Channel.class.getName()).log(Level.SEVERE, null, ex);
-            return -1;
-        }
+        read = input.read(buffer, 0, 4);
+        samplingRate = ByteBuffer.wrap(buffer).getInt();
+
+
     }
 
     public int getSamplingRate() {
@@ -103,6 +97,4 @@ public class Channel {
     public int getTime() {
         return time;
     }
-    
-    
 }

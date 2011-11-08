@@ -29,7 +29,6 @@ public class Tcpip_server {
             Server connection = new Server(serverSocket);
 
             Console.setMessage("Server started");
-            Console.setMessage("Waiting for Clients");
 
             while (true) {
                 connection.startServer();

@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,37 +32,40 @@ public class Server {
     }
 
     public void startServer() {
+        ScheduledThreadPoolExecutor service = null;
         try {
             client = serverSocket.accept();
             Console.setMessage("Client " + client.getInetAddress().toString() + " connected");
+
 
             InputStream input = client.getInputStream();
             int number = Data.receiveNumberOfChannels(input);
 
             if (number > 0) {
 
+                service = new ScheduledThreadPoolExecutor(number);
                 Channel[] channels = new Channel[number];
-
-                Thread[] t = new Thread[number];
-
+                
+                client.setSoTimeout(5000);
                 for (int i = 0; i < number; i++) {
                     channels[i] = new Channel();
-                    t[i] = new Thread(new Receive(channels[i], input, OUTPUT));
-                    t[i].start();
-
+                    service.schedule(new Receive(channels[i], input, OUTPUT, service), 1000, TimeUnit.MILLISECONDS);
                 }
 
-                boolean state = true;
-                while (state) {
-                    for (int i = 0; i < number; i++) {
-                        state = t[i].isAlive();
-                    }
+                while (!service.isTerminated()) {
                 }
+
             }
-           
+
+
             Console.setMessage("Client " + client.getInetAddress().toString() + " disconnected");
 
-        } catch (IOException ex) {
+        } 
+        catch (SocketException ex){
+            service.shutdownNow();
+            Console.setMessage("Client " + client.getInetAddress().toString() + " disconnected");
+        }
+        catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {

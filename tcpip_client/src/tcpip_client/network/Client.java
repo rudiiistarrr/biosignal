@@ -46,8 +46,7 @@ public class Client {
 
     public void connectToServer() {
         try {
-            ScheduledThreadPoolExecutor service = new ScheduledThreadPoolExecutor(10);
-            BufferedReader reader;
+            
             boolean reconnect = false;
             OutputStream output = socket.getOutputStream();
 
@@ -84,6 +83,8 @@ public class Client {
             }
 
             saveConfig();
+            
+            ScheduledThreadPoolExecutor service = new ScheduledThreadPoolExecutor(number);
 
             /* Sort Channels (lowest sampling rate first) */
             Collections.sort(channels, new ChannelComparator());
